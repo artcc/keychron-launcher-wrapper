@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.0.7] - 2026-07-30
+
+### Fixed
+
+- Fixed CI release workflow to avoid duplicate draft releases caused by electron-builder and softprops publishing simultaneously.
+- Fixed local build scripts (`pack:mac`, `dist:mac`) to always use `--publish never`, preventing accidental draft releases.
+
+### Changed
+
+- CI release workflow now uses electron-builder with `--publish always` for publishing and the GitHub API to set the release title and changelog body.
+- Updated `AGENTS.md` to reflect manual tag push for releases.
+
 ## [0.0.6] - 2026-07-30
 
 ### Added
