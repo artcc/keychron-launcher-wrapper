@@ -1,5 +1,5 @@
 ## Scope
-This repository is a minimal Electron macOS utility that wraps the official Keychron Launcher website for Keychron keyboard configuration.
+This repository is a minimal Electron macOS utility that wraps the official Keychron Launcher website for Keychron keyboard configuration. It exists so users can configure their keyboards without installing Chrome or any general-purpose browser.
 
 ## Priorities
 1. Working WebHID support
@@ -14,14 +14,22 @@ This repository is a minimal Electron macOS utility that wraps the official Keyc
 - Do not add unrelated product features
 - Do not introduce heavy dependencies without strong justification
 - Keep code easy to read
-- Prefer small files and straightforward structure
+- Prefer plain JavaScript; only use TypeScript if it meaningfully improves the result
+- Prefer correctness over visual polish
 - Document limitations honestly
 
 ## UX
 - Single window
-- No browser chrome
-- Focus on loading official Keychron Launcher reliably
+- No browser chrome, no tabs, no address bar, no bookmarks
+- Focus on loading the official Keychron Launcher reliably
 
 ## Platform
 - macOS first
 - Wired USB for the initial version
+
+## Technical
+- Validate that `navigator.hid` is available in the loaded page context
+- Explicit handling of HID permissions and device selection
+- Domain allowlisting and navigation hardening
+- Secure Electron defaults (contextIsolation, sandbox, no nodeIntegration)
+- Packaging-ready project structure for macOS

@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { app, BrowserWindow, dialog, nativeImage, nativeTheme, session } = require("electron");
+const { autoUpdater } = require("electron-updater");
 
 const KEYCHRON_LAUNCHER_URL = "https://launcher.keychron.com";
 const APP_NAME = "Keychron Launcher Wrapper";
@@ -100,9 +101,12 @@ function configureHidAndPermissions() {
   });
 
   appSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    const url = (details && (details.requestingUrl || details.requestingOrigin)) || "";
+
     logDebug("permission-request", {
       permission,
-      requestingUrl: details && details.requestingUrl
+      url,
+      rawDetails: details ? Object.keys(details) : null
     });
 
     if (permission !== "hid") {
@@ -110,7 +114,8 @@ function configureHidAndPermissions() {
       return;
     }
 
-    const allowed = isAllowedUrl(details.requestingUrl);
+    const allowed = isAllowedUrl(url);
+    logDebug("permission-request-result", { url, allowed });
     callback(allowed);
   });
 
@@ -138,31 +143,55 @@ function configureHidAndPermissions() {
     const deviceList = (details && details.deviceList) || [];
 
     logDebug("select-hid-device", {
+      hasFrame: !!(details && details.frame),
       frameUrl: details && details.frame && details.frame.url,
+      detailsKeys: details ? Object.keys(details) : null,
       devices: deviceList.length,
       deviceList:
-        (deviceList.length
-          ? deviceList.map((d) => ({
-            name: d.name,
-            productId: d.productId,
-            vendorId: d.vendorId,
-            deviceId: d.deviceId
-          }))
-          : [])
+        deviceList.map((d) => ({
+          name: d.name,
+          productId: d.productId,
+          vendorId: d.vendorId,
+          deviceId: d.deviceId
+        }))
     });
 
-    if (!details.frame || !isAllowedUrl(details.frame.url)) {
+    if (details.frame && !isAllowedUrl(details.frame.url)) {
+      logDebug("select-hid-device-blocked", { frameUrl: details.frame.url });
       event.preventDefault();
       callback("");
       return;
     }
 
-    // In some Electron builds, requestDevice may resolve [] unless the app
-    // explicitly returns the only candidate device from this event.
-    if (deviceList.length === 1) {
-      event.preventDefault();
-      callback(deviceList[0].deviceId);
+    event.preventDefault();
+
+    if (deviceList.length === 0) {
+      logDebug("select-hid-device-empty", { filters: details.filters });
+      callback("");
+      dialog.showMessageBox({
+        type: "warning",
+        title: "No HID Devices Found",
+        message: "No HID devices were detected.",
+        detail: "Make sure your keyboard is connected via USB cable.",
+        buttons: ["OK"]
+      });
+      return;
     }
+
+    // Prefer Keychron-branded devices (vendorId 0x3434 = 13364)
+    const keychronDevice = deviceList.find((d) => d.vendorId === 13364);
+    if (keychronDevice) {
+      logDebug("select-hid-device-auto", { name: keychronDevice.name, vendorId: keychronDevice.vendorId });
+      callback(keychronDevice.deviceId);
+      return;
+    }
+
+    if (deviceList.length === 1) {
+      callback(deviceList[0].deviceId);
+      return;
+    }
+
+    callback("");
   });
 }
 
@@ -296,8 +325,13 @@ function createMainWindow() {
     validateHidAvailability(mainWindow);
   });
 
-  mainWindow.webContents.on("console-message", (_event, level, message, line, sourceId) => {
-    logDebug("renderer-console", { level, message, line, sourceId });
+  mainWindow.webContents.on("console-message", (event) => {
+    logDebug("renderer-console", {
+      level: event.level,
+      message: event.message,
+      line: event.line,
+      sourceId: event.sourceId
+    });
   });
 
   mainWindow.on("page-title-updated", (event) => {
@@ -306,6 +340,15 @@ function createMainWindow() {
   });
 
   mainWindow.loadURL(KEYCHRON_LAUNCHER_URL);
+}
+
+function setupAutoUpdater() {
+  if (app.isPackaged) {
+    logDebug("auto-updater", { checking: true });
+    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+      logDebug("auto-updater-error", { error: String(err) });
+    });
+  }
 }
 
 app.whenReady().then(async () => {
@@ -324,6 +367,8 @@ app.whenReady().then(async () => {
   }
 
   createMainWindow();
+
+  setupAutoUpdater();
 
   nativeTheme.on("updated", () => {
     applyMacWindowAppearance(mainWindow);

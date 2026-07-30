@@ -1,6 +1,6 @@
 {
   "name": "keychron-launcher-wrapper",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Minimal macOS Electron wrapper for the official Keychron Launcher with WebHID support.",
   "main": "src/main.js",
   "type": "commonjs",
@@ -31,13 +31,30 @@
       "entitlementsInherit": "build/entitlements.mac.inherit.plist",
       "category": "public.app-category.utilities",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64", "x64"]
+        }
       ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "artcc",
+      "repo": "keychron-launcher-wrapper"
     }
   },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  },
   "devDependencies": {
-    "electron": "^41.0.2",
+    "electron": "41.10.3",
     "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

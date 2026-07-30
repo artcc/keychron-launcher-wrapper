@@ -22,9 +22,12 @@ Minimal Electron desktop utility that opens the official Keychron Launcher in a 
 - Single `BrowserWindow` with no tabs, address bar, or bookmarks
 - Loads `https://launcher.keychron.com` on startup
 - WebHID permission handling through Electron session handlers
+- Keychron device auto-detection by vendor ID (0x3434) during HID selection
+- Warning dialog when no HID devices are found
 - `navigator.hid` runtime validation in the loaded page context
 - Domain allowlisting and navigation hardening
 - Optional pre-launch hint: connect keyboard by cable before continuing
+- Auto-update via GitHub Releases (checks for new versions on launch)
 
 ## TODO
 
@@ -45,9 +48,7 @@ The app uses Electron session APIs to keep HID access explicit and scoped:
 - `setPermissionCheckHandler`: allows only `hid` and only from allowlisted origins.
 - `setPermissionRequestHandler`: denies non-HID requests and non-allowlisted origins.
 - `setDevicePermissionHandler`: allows HID device permissions only for allowlisted origins.
-- `select-hid-device`: blocks HID selection requests from non-allowlisted frames.
-
-This keeps permissions narrow while preserving Chromium's native device selection flow for allowed pages.
+- `select-hid-device`: handles device selection explicitly for all cases. Auto-selects Keychron devices by vendor ID when found. Shows a warning dialog when no devices are detected. Blocks selection from non-allowlisted frames.
 
 ## Navigation Hardening
 
@@ -82,7 +83,7 @@ Use this only for hostnames that are strictly required by the official Keychron 
 ├── .github/
 │   ├── workflows/
 │   │   └── build-macos.yml
-│   └── copilot-instructions.md
+
 ├── assets/
 │   └── keychron-launcher-wrapper.png
 ├── build/

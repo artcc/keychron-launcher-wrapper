@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.0.5] - 2026-07-30
+
+### Added
+
+- Added auto-update support via `electron-updater` using GitHub Releases as update feed.
+- Added multi-architecture macOS build targets (arm64 and x64).
+- Added warning dialog when no HID devices are found during device selection.
+
+### Changed
+
+- Pinned Electron version to 41.10.3 (exact, no caret range).
+- Updated `electron-builder` to 26.15.3.
+- Updated CI release workflow to generate auto-update metadata (`latest.yml`).
+
+### Fixed
+
+- Fixed `select-hid-device` handler to explicitly manage device selection for all cases (zero, single, and multiple devices).
+- Added Keychron vendor ID (0x3434) auto-detection in device selection.
+- Fixed `setPermissionRequestHandler` to fall back to `requestingOrigin` when `requestingUrl` is unavailable.
+- Migrated deprecated `console-message` event handler to the new event-based API.
+
 ## [0.0.4] - 2026-03-16
 
 ### Added
