@@ -10,8 +10,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "pack:mac": "electron-builder --mac dir --publish never",
-    "dist:mac": "electron-builder --mac --publish never"
+    "pack:mac": "electron-builder --mac dir",
+    "dist:mac": "electron-builder --mac"
   },
   "build": {
     "appId": "com.keychron.launcherwrapper",
