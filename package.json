@@ -40,11 +40,6 @@
           "arch": ["arm64"]
         }
       ]
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "artcc",
-      "repo": "keychron-launcher-wrapper"
     }
   },
   "dependencies": {

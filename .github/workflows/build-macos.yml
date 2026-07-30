@@ -98,7 +98,7 @@ jobs:
           APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
 
       - name: Build macOS distributables
-        run: npm run dist:mac -- --publish always
+        run: npm run dist:mac -- --publish always -c.publish.provider=github -c.publish.owner=artcc -c.publish.repo=keychron-launcher-wrapper
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
