@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.0.6] - 2026-07-30
+
+### Added
+
+- Added native macOS menu bar with standard Edit, View, and Window menus.
+- Added "Check for Updates..." menu item in the app menu (only active in packaged builds).
+
+### Changed
+
+- Restricted macOS builds to arm64 (Apple Silicon) only.
+- Simplified CI release workflow to rely on manual tag push instead of automatic tag creation.
+- Removed x64 build targets (Intel Mac support deprecated by Apple).
+- Merged `.github/copilot-instructions.md` into `AGENTS.md` and removed the file.
+- Updated `AGENTS.md` with release workflow and agent guidelines.
+- Updated `README.md` with new features (auto-update, Keychron auto-detection, HID warnings).
+
 ## [0.0.5] - 2026-07-30
 
 ### Added

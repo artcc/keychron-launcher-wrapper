@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { app, BrowserWindow, dialog, nativeImage, nativeTheme, session } = require("electron");
+const { app, BrowserWindow, dialog, Menu, nativeImage, nativeTheme, session } = require("electron");
 const { autoUpdater } = require("electron-updater");
 
 const KEYCHRON_LAUNCHER_URL = "https://launcher.keychron.com";
@@ -351,6 +351,67 @@ function setupAutoUpdater() {
   }
 }
 
+function buildAppMenu() {
+  const template = [
+    {
+      label: APP_NAME,
+      submenu: [
+        { role: "about" },
+        { type: "separator" },
+        {
+          label: "Check for Updates...",
+          enabled: app.isPackaged,
+          click: () => {
+            autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+              logDebug("auto-updater-error", { error: String(err) });
+            });
+          }
+        },
+        { type: "separator" },
+        { role: "hide" },
+        { role: "hideOthers" },
+        { role: "unhide" },
+        { type: "separator" },
+        { role: "quit" }
+      ]
+    },
+    {
+      label: "Edit",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        { role: "selectAll" }
+      ]
+    },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "forceReload" },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" }
+      ]
+    },
+    {
+      label: "Window",
+      submenu: [
+        { role: "minimize" },
+        { role: "close" }
+      ]
+    }
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 app.whenReady().then(async () => {
   if (process.platform === "darwin" && fs.existsSync(APP_ICON_PATH)) {
     const dockIcon = nativeImage.createFromPath(APP_ICON_PATH);
@@ -358,6 +419,8 @@ app.whenReady().then(async () => {
       app.dock.setIcon(dockIcon);
     }
   }
+
+  buildAppMenu();
 
   configureHidAndPermissions();
 
