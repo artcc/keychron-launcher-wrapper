@@ -1,0 +1,147 @@
+name: Publish macOS Release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+jobs:
+  publish-macos-release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate signing and notarization secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            CSC_LINK
+            CSC_KEY_PASSWORD
+            APPLE_API_KEY_BASE64
+            APPLE_API_KEY_ID
+            APPLE_API_ISSUER
+          )
+
+          for var in "${required[@]}"; do
+            if [[ -z "${!var:-}" ]]; then
+              echo "Missing required secret: $var" >&2
+              exit 1
+            fi
+          done
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+
+      - name: Prepare App Store Connect API key
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
+          echo "$APPLE_API_KEY_BASE64" | base64 --decode > "$KEY_PATH"
+          echo "APPLE_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+        env:
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+
+      - name: Build macOS distributables
+        run: npm run dist:mac -- --publish never
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY: ${{ env.APPLE_API_KEY_PATH }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+
+      - name: Generate latest-mac.yml for auto-update
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_NAME="${GITHUB_REF_NAME}"
+          VERSION="${TAG_NAME#v}"
+
+          DMG=$(ls dist/*.dmg | head -1)
+          ZIP=$(ls dist/*.zip | grep -v blockmap | head -1)
+
+          DMG_NAME=$(basename "$DMG")
+          ZIP_NAME=$(basename "$ZIP")
+
+          DMG_SHA=$(shasum -a 512 "$DMG" | awk '{print $1}' | xxd -r -p | base64)
+          ZIP_SHA=$(shasum -a 512 "$ZIP" | awk '{print $1}' | xxd -r -p | base64)
+
+          DMG_SIZE=$(stat -f%z "$DMG")
+          ZIP_SIZE=$(stat -f%z "$ZIP")
+
+          cat > dist/latest-mac.yml <<YAML
+          version: ${VERSION}
+          files:
+            - url: ${DMG_NAME}
+              sha512: ${DMG_SHA}
+              size: ${DMG_SIZE}
+            - url: ${ZIP_NAME}
+              sha512: ${ZIP_SHA}
+              size: ${ZIP_SIZE}
+          path: ${DMG_NAME}
+          sha512: ${DMG_SHA}
+          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+          YAML
+
+          echo "Generated latest-mac.yml for version ${VERSION}"
+
+      - name: Generate release notes from CHANGELOG
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG_NAME="${GITHUB_REF_NAME}"
+          VERSION="${TAG_NAME#v}"
+          NOTES_FILE="release-notes.md"
+
+          awk -v version="$VERSION" '
+            $0 ~ "^## \\[" version "\\]" { in_section = 1; print; next }
+            in_section && $0 ~ "^## \\[" { exit }
+            in_section { print }
+          ' CHANGELOG.md > "$NOTES_FILE"
+
+          if [[ ! -s "$NOTES_FILE" ]]; then
+            {
+              echo "## [$VERSION]"
+              echo
+              echo "No changelog entry found for this version."
+            } > "$NOTES_FILE"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Keychron Launcher Wrapper v${{ steps.changelog.outputs.version }}
+          body_path: ${{ steps.changelog.outputs.notes_file }}
+          files: |
+            dist/*.dmg
+            dist/*.zip
+            dist/latest-mac.yml
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
