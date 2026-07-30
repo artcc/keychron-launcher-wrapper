@@ -29,6 +29,8 @@ jobs:
 
       - name: Build macOS distributables
         run: npm run dist:mac -- --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload DMG and ZIP artifacts
         uses: actions/upload-artifact@v4
