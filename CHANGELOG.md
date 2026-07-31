@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.0.8] - 2026-07-31
+
+### Fixed
+
+- Fixed GitHub Releases auto-update configuration and macOS update metadata.
+- Added visible update status, error, download, and installation dialogs.
+- Added release validation to ensure the tag matches the package version.
+
 ## [0.0.7] - 2026-07-30
 
 ### Fixed

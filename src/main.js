@@ -28,6 +28,7 @@ const EXTRA_ALLOWED_HOSTS = (process.env.KEYCHRON_ALLOWED_HOSTS || "")
   .filter(Boolean);
 
 let mainWindow = null;
+let interactiveUpdateCheck = false;
 
 function getAppIconImage() {
   if (!fs.existsSync(APP_ICON_PATH)) {
@@ -342,13 +343,99 @@ function createMainWindow() {
   mainWindow.loadURL(KEYCHRON_LAUNCHER_URL);
 }
 
+function showUpdateMessage(options) {
+  const messageOptions = { icon: getAppIconImage(), ...options };
+  const window = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+  return window ? dialog.showMessageBox(window, messageOptions) : dialog.showMessageBox(messageOptions);
+}
+
 function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("checking-for-update", () => {
+    logDebug("auto-updater-checking");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    logDebug("auto-updater-update-available", { version: info.version });
+    if (interactiveUpdateCheck) {
+      showUpdateMessage({
+        type: "info",
+        title: "Update Available",
+        message: `Version ${info.version} is available.`,
+        detail: "The update will be downloaded in the background."
+      });
+    }
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    logDebug("auto-updater-update-not-available");
+    if (interactiveUpdateCheck) {
+      showUpdateMessage({
+        type: "info",
+        title: "No Updates Available",
+        message: "You are running the latest version."
+      });
+    }
+    interactiveUpdateCheck = false;
+  });
+
+  autoUpdater.on("update-downloaded", async (info) => {
+    logDebug("auto-updater-update-downloaded", { version: info.version });
+    interactiveUpdateCheck = false;
+
+    const result = await showUpdateMessage({
+      type: "info",
+      title: "Update Ready",
+      message: `Version ${info.version} has been downloaded.`,
+      detail: "Restart the app to install the update.",
+      buttons: ["Restart and Install", "Later"],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true
+    });
+
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+
+  autoUpdater.on("error", (error) => {
+    logDebug("auto-updater-error", { error: String(error) });
+    if (interactiveUpdateCheck) {
+      showUpdateMessage({
+        type: "error",
+        title: "Update Check Failed",
+        message: "Could not check for updates.",
+        detail: String(error)
+      });
+    }
+    interactiveUpdateCheck = false;
+  });
+
   if (app.isPackaged) {
     logDebug("auto-updater", { checking: true });
-    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-      logDebug("auto-updater-error", { error: String(err) });
+    autoUpdater.checkForUpdates().catch((error) => {
+      logDebug("auto-updater-error", { error: String(error) });
     });
   }
+}
+
+function checkForUpdates() {
+  if (!app.isPackaged) {
+    showUpdateMessage({
+      type: "info",
+      title: "Updates Unavailable",
+      message: "Auto-update checks are only available in packaged builds."
+    });
+    return;
+  }
+
+  interactiveUpdateCheck = true;
+  autoUpdater.checkForUpdates().catch((error) => {
+    logDebug("auto-updater-error", { error: String(error) });
+  });
 }
 
 function buildAppMenu() {
@@ -360,12 +447,7 @@ function buildAppMenu() {
         { type: "separator" },
         {
           label: "Check for Updates...",
-          enabled: app.isPackaged,
-          click: () => {
-            autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-              logDebug("auto-updater-error", { error: String(err) });
-            });
-          }
+          click: checkForUpdates
         },
         { type: "separator" },
         { role: "hide" },

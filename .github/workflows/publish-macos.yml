@@ -75,6 +75,19 @@ jobs:
           set -euo pipefail
           TAG_NAME="${GITHUB_REF_NAME}"
           VERSION="${TAG_NAME#v}"
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          if [[ "$VERSION" != "$PACKAGE_VERSION" ]]; then
+            echo "Tag version $VERSION does not match package.json version $PACKAGE_VERSION" >&2
+            exit 1
+          fi
+
+          for artifact in dist/*.dmg dist/*.zip; do
+            normalized=$(printf '%s' "$artifact" | tr ' ' '.')
+            if [[ "$artifact" != "$normalized" ]]; then
+              mv "$artifact" "$normalized"
+            fi
+          done
 
           DMG=$(ls dist/*.dmg | head -1)
           ZIP=$(ls dist/*.zip | grep -v blockmap | head -1)
@@ -97,8 +110,8 @@ jobs:
             - url: ${ZIP_NAME}
               sha512: ${ZIP_SHA}
               size: ${ZIP_SIZE}
-          path: ${DMG_NAME}
-          sha512: ${DMG_SHA}
+          path: ${ZIP_NAME}
+          sha512: ${ZIP_SHA}
           releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
           YAML
 
