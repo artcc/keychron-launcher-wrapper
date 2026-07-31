@@ -15,6 +15,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 - Clarified that macOS is the only packaged and distributed platform.
 - Refined project documentation and reorganized the static website assets.
+- Updated Electron to 43.2.0 and electron-builder to 26.15.3.
 
 ## [0.0.9] - 2026-07-31
 
