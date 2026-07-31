@@ -7,15 +7,15 @@
 > Disclaimer: This is an independent community project and is not an official Keychron product.
 > Keychron and related names are trademarks of their respective owners.
 
-Minimal Electron desktop utility that opens the official Keychron Launcher in a dedicated app window, with WebHID support for configuring Keychron keyboards over wired USB.
+Minimal Electron desktop utility that opens the Keychron Launcher website in a dedicated app window, with WebHID support for configuring Keychron keyboards over wired USB.
 
 ## Scope
 
 - Dedicated wrapper app, not a general-purpose browser
-- Loads the official Keychron Launcher site
+- Loads the Keychron Launcher website
 - Uses Electron's embedded Chromium runtime
-- Primary target and distribution platform: macOS
-- Also runs locally on Windows and Linux (WebHID behavior may vary by OS/runtime support)
+- Primary target and only packaged/distributed platform: macOS
+- Can also be run locally on Windows and Linux with Node.js and npm
 
 ## Features
 
@@ -27,19 +27,11 @@ Minimal Electron desktop utility that opens the official Keychron Launcher in a 
 - `navigator.hid` runtime validation in the loaded page context
 - Domain allowlisting and navigation hardening
 - Optional pre-launch hint: connect keyboard by cable before continuing
-- Auto-update via GitHub Releases (checks for new versions on launch)
-
-## TODO
-
-- [ ] Add Windows packaging and distribution (`.exe`, NSIS installer).
-- [ ] Add Linux packaging and distribution (`.deb` for Debian/Ubuntu and derivatives).
-- [ ] Evaluate additional Linux targets (for example, AppImage and `.rpm`) based on demand.
-- [ ] Add CI matrix jobs for Windows and Linux artifacts.
-- [ ] Add platform-specific verification notes for WebHID behavior on Windows and Linux.
+- Auto-update via GitHub Releases in packaged builds (checks for new versions on launch)
 
 ## Installation and Usage
 
-Setup, runtime usage, WebHID verification, and platform notes for macOS, Windows, and Linux are documented in [INSTALL.md](INSTALL.md).
+Setup, macOS packaging, local runtime usage, and WebHID verification are documented in [INSTALL.md](INSTALL.md).
 
 ## WebHID Permission Handling
 
@@ -48,7 +40,7 @@ The app uses Electron session APIs to keep HID access explicit and scoped:
 - `setPermissionCheckHandler`: allows only `hid` and only from allowlisted origins.
 - `setPermissionRequestHandler`: denies non-HID requests and non-allowlisted origins.
 - `setDevicePermissionHandler`: allows HID device permissions only for allowlisted origins.
-- `select-hid-device`: handles device selection explicitly for all cases. Auto-selects Keychron devices by vendor ID when found. Shows a warning dialog when no devices are detected. Blocks selection from non-allowlisted frames.
+- `select-hid-device`: handles device selection explicitly, auto-selects Keychron devices by vendor ID when found, and shows a warning dialog when no devices are detected. Blocks selection from non-allowlisted frames.
 
 ## Navigation Hardening
 
@@ -61,19 +53,19 @@ The app uses Electron session APIs to keep HID access explicit and scoped:
 
 ### Allowlist Override (if needed)
 
-If the official launcher starts depending on additional hostnames, you can extend the allowlist without code changes:
+If the Keychron Launcher starts depending on additional hostnames, you can extend the allowlist without code changes:
 
 ```bash
 KEYCHRON_ALLOWED_HOSTS="example-cdn.com,assets.example.com" npm start
 ```
 
-Use this only for hostnames that are strictly required by the official Keychron Launcher.
+Use this only for hostnames that are strictly required by the Keychron Launcher.
 
 ## Limitations and Risks
 
-- This wrapper depends on compatibility between the official Keychron Launcher site and the Chromium version bundled with the selected Electron version.
+- This wrapper depends on compatibility between the Keychron Launcher website and the Chromium version bundled with the selected Electron version.
 - Local builds may be unsigned unless you configure signing and notarization in your own environment.
-- If the official launcher adds new third-party domains, the allowlist may need updates (or temporary extension via `KEYCHRON_ALLOWED_HOSTS`).
+- If the Keychron Launcher adds new third-party domains, the allowlist may need updates (or temporary extension via `KEYCHRON_ALLOWED_HOSTS`).
 - HID access still depends on OS-level device behavior, cable quality, and keyboard mode/state.
 
 ## Project Structure
@@ -82,7 +74,8 @@ Use this only for hostnames that are strictly required by the official Keychron 
 .
 ├── .github/
 │   ├── workflows/
-│   │   └── build-macos.yml
+│   │   ├── build-macos.yml
+│   │   └── publish-macos.yml
 
 ├── assets/
 │   └── keychron-launcher-wrapper.png
@@ -90,8 +83,11 @@ Use this only for hostnames that are strictly required by the official Keychron 
 │   ├── entitlements.mac.inherit.plist
 │   └── entitlements.mac.plist
 ├── docs/
-│   ├── index.html
-│   └── styles.css
+│   ├── assets/
+│   │   └── favicon.png
+│   ├── css/
+│   │   └── styles.css
+│   └── index.html
 ├── src/
 │   ├── main.js
 │   └── preload.js
@@ -110,6 +106,6 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## Author
 
-GitHub: [ArtCC](https://github.com/ArtCC)
+GitHub: [ArtCC](https://github.com/artcc)
 
 Arturo Carretero Calvo - 2026

@@ -1,12 +1,11 @@
 # Installation and Usage
 
-This document explains how to use Keychron Launcher Wrapper on Linux distribution, macOS, and Windows.
+This document explains how to use Keychron Launcher Wrapper locally and how to package it for macOS.
 
 ## Supported Platforms
 
-- Linux (local runtime support, including Debian and derivatives)
-- macOS (primary target and distribution platform)
-- Windows (local runtime support)
+- macOS (primary target and only packaged platform)
+- Windows and Linux (local runtime with Node.js and npm)
 
 WebHID behavior may vary by OS/runtime support.
 
@@ -22,7 +21,7 @@ WebHID behavior may vary by OS/runtime support.
 npm install
 ```
 
-## Local Usage (Linux distribution, macOS, Windows)
+## Local Usage
 
 ```bash
 npm start
@@ -54,7 +53,7 @@ npm run dist:mac
 
 ## macOS Releases
 
-- Download the latest macOS installer (`.dmg`) from: https://github.com/ArtCC/keychron-launcher-wrapper/releases
+- Download the latest macOS installer (`.dmg`) from: https://github.com/artcc/keychron-launcher-wrapper/releases
 - Published release artifacts are signed and notarized by Apple when the required signing secrets are configured.
 
 ## DevTools Behavior
@@ -73,7 +72,3 @@ npm run dist:mac
 6. Confirm the launcher can read/configure the keyboard.
 
 If `navigator.hid` is unavailable, the app displays a warning dialog after page load.
-
-## Notes for Windows and Linux Packages
-
-Native Windows (`.exe`) and Linux (`.deb` and other formats) packaging are tracked as pending tasks in the project TODO list.

@@ -1,6 +1,6 @@
 ## Scope
 
-This repository is a minimal Electron macOS utility that wraps the official Keychron Launcher website for Keychron keyboard configuration. It exists so users can configure their keyboards without installing Chrome or any general-purpose browser.
+This repository is a minimal Electron macOS utility that wraps the Keychron Launcher website for Keychron keyboard configuration. It exists so users can configure their keyboards without installing Chrome or any general-purpose browser.
 
 ## Priorities
 
@@ -25,11 +25,12 @@ This repository is a minimal Electron macOS utility that wraps the official Keyc
 
 - Single window
 - No browser chrome, no tabs, no address bar, no bookmarks
-- Focus on loading the official Keychron Launcher reliably
+- Focus on loading the Keychron Launcher website reliably
 
 ## Platform
 
-- macOS first
+- macOS is the only packaged and distributed platform
+- Windows and Linux are supported for local execution only; do not add packaging or distribution work for them
 - Wired USB for the initial version
 
 ## Technical
@@ -42,8 +43,9 @@ This repository is a minimal Electron macOS utility that wraps the official Keyc
 
 ## Release workflow
 
-When asked to bump or release a new version:
-1. Ask the user which version number (e.g. `0.0.6`)
+When asked to bump or release a new version, if the user has not provided the version:
+1. Ask which version number to use (for example, `1.0.0`)
 2. Add a new entry at the top of `CHANGELOG.md` with the version, date, and relevant changes
-3. Update `"version"` in `package.json` to match
-4. The user must push the tag manually (`git tag 0.0.6 && git push origin 0.0.6`) — the tag triggers the CI release workflow
+3. Update `"version"` in `package.json` and both lockfile version fields to match
+4. Verify the tag version matches `package.json` before release
+5. The user must push the tag manually (`git tag 1.0.0 && git push origin 1.0.0`) — the tag triggers the macOS CI release workflow

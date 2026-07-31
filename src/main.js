@@ -14,7 +14,7 @@ const APP_ICON_PATH = path.join(__dirname, "..", "assets", "keychron-launcher-wr
 
 app.setName(APP_NAME);
 
-// Add only domains that are required by the official launcher.
+// Add only domains that are required by the Keychron Launcher website.
 const ALLOWED_HOST_PATTERNS = [
   "launcher.keychron.com",
   "keychron.com",

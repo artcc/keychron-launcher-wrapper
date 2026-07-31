@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [1.0.0] - 2026-07-31
+
+### Added
+
+- Added the macOS-first project landing page with installation and release links.
+- Added visible auto-update status and installation feedback.
+
+### Changed
+
+- Clarified that macOS is the only packaged and distributed platform.
+- Refined project documentation and reorganized the static website assets.
+
 ## [0.0.9] - 2026-07-31
 
 ### Changed
@@ -72,13 +84,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Added
 
 - Added a GitHub Pages static landing under `docs/`.
-- Added app icon support in the website as both visible logo and favicon (`docs/favicon.png`).
+- Added app icon support in the website as both visible logo and favicon (`docs/assets/favicon.png`).
 
 ### Changed
 
 - Updated landing page content to English.
 - Switched landing page to a dark theme with a centered main container layout.
-- Extended landing page copy to mention Linux, Windows, and macOS availability.
+- Clarified local runtime support and macOS distribution scope.
 - Expanded README with GitHub Pages setup instructions and docs structure references.
 
 ## [0.0.3] - 2026-03-15
@@ -107,7 +119,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Added
 
 - Initial Electron macOS wrapper project.
-- Single dedicated BrowserWindow loading the official Keychron Launcher.
+- Single dedicated BrowserWindow loading the Keychron Launcher website.
 - WebHID permission and device selection handling.
 - Domain allowlisting and navigation hardening.
 - Minimal preload and secure Electron defaults.

@@ -4,12 +4,12 @@ Thank you for contributing to Keychron Launcher Wrapper.
 
 ## Scope
 
-This project is a minimal macOS Electron wrapper for the official Keychron Launcher with WebHID support. Please keep contributions aligned with this scope.
+This project is a minimal macOS Electron wrapper for the Keychron Launcher website with WebHID support. Please keep contributions aligned with this scope.
 
 ## Ground Rules
 
 - Do not reimplement Keychron HID protocol logic.
-- Do not clone or replace the official launcher UI.
+- Do not clone or replace the Keychron Launcher UI.
 - Keep changes minimal and focused.
 - Prefer plain JavaScript and avoid heavy dependencies.
 - Preserve security hardening and domain restrictions.
