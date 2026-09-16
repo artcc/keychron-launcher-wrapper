@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [1.1.0] - 2026-09-16
+
+### Added
+
+- Added persistence for window size, position, and maximized state between launches.
+- Added validation to avoid restoring the window to a position outside the available displays.
+
+### Changed
+
+- Removed the connection reminder shown at every app launch. The contextual warning when no HID devices are detected remains available.
+
 ## [1.0.0] - 2026-07-31
 
 ### Added

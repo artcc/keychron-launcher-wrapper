@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { app, BrowserWindow, dialog, Menu, nativeImage, nativeTheme, session } = require("electron");
+const { app, BrowserWindow, dialog, Menu, nativeImage, nativeTheme, screen, session } = require("electron");
 const { autoUpdater } = require("electron-updater");
 
 const KEYCHRON_LAUNCHER_URL = "https://launcher.keychron.com";
@@ -11,6 +11,10 @@ const APP_WINDOW_TITLE = "Keychron Launcher Wrapper";
 const DEBUG_LOGS = process.env.KEYCHRON_DEBUG === "1";
 const FORCE_DEVTOOLS = process.env.KEYCHRON_DEVTOOLS === "1";
 const APP_ICON_PATH = path.join(__dirname, "..", "assets", "keychron-launcher-wrapper.png");
+const WINDOW_STATE_FILE = "window-state.json";
+const DEFAULT_WINDOW_BOUNDS = { width: 1280, height: 900 };
+const MIN_WINDOW_WIDTH = 1024;
+const MIN_WINDOW_HEIGHT = 700;
 
 app.setName(APP_NAME);
 
@@ -223,27 +227,6 @@ app.on("web-contents-created", (_event, contents) => {
   });
 });
 
-async function maybeShowConnectionHint() {
-  const appIcon = getAppIconImage();
-  const result = await dialog.showMessageBox({
-    type: "info",
-    title: "Keychron Launcher Wrapper",
-    message: "Connect your keyboard by cable before continuing.",
-    icon: appIcon,
-    buttons: ["Continue", "Quit"],
-    defaultId: 0,
-    cancelId: 1,
-    noLink: true
-  });
-
-  if (result.response === 1) {
-    app.quit();
-    return false;
-  }
-
-  return true;
-}
-
 async function validateHidAvailability(win) {
   const appIcon = getAppIconImage();
   try {
@@ -280,13 +263,78 @@ function applyMacWindowAppearance(win) {
   win.setBackgroundColor(getWindowBackgroundColor());
 }
 
+function getWindowStatePath() {
+  return path.join(app.getPath("userData"), WINDOW_STATE_FILE);
+}
+
+function isValidWindowDimension(value, minimum) {
+  return Number.isFinite(value) && value >= minimum;
+}
+
+function isWindowPositionVisible(bounds) {
+  return screen.getAllDisplays().some(({ workArea }) => {
+    const visibleWidth = Math.max(
+      0,
+      Math.min(bounds.x + bounds.width, workArea.x + workArea.width) - Math.max(bounds.x, workArea.x)
+    );
+    const visibleHeight = Math.max(
+      0,
+      Math.min(bounds.y + bounds.height, workArea.y + workArea.height) - Math.max(bounds.y, workArea.y)
+    );
+
+    return visibleWidth >= 100 && visibleHeight >= 100;
+  });
+}
+
+function loadWindowState() {
+  const defaultState = { bounds: DEFAULT_WINDOW_BOUNDS, isMaximized: false };
+
+  try {
+    const savedState = JSON.parse(fs.readFileSync(getWindowStatePath(), "utf8"));
+    const bounds = {
+      width: isValidWindowDimension(savedState.width, MIN_WINDOW_WIDTH)
+        ? savedState.width
+        : DEFAULT_WINDOW_BOUNDS.width,
+      height: isValidWindowDimension(savedState.height, MIN_WINDOW_HEIGHT)
+        ? savedState.height
+        : DEFAULT_WINDOW_BOUNDS.height
+    };
+
+    if (
+      Number.isFinite(savedState.x) &&
+      Number.isFinite(savedState.y) &&
+      isWindowPositionVisible({ ...bounds, x: savedState.x, y: savedState.y })
+    ) {
+      bounds.x = savedState.x;
+      bounds.y = savedState.y;
+    }
+
+    return { bounds, isMaximized: savedState.isMaximized === true };
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      logDebug("window-state-load-error", { error: String(error) });
+    }
+    return defaultState;
+  }
+}
+
+function saveWindowState(win) {
+  try {
+    const bounds = win.getNormalBounds();
+    const state = { ...bounds, isMaximized: win.isMaximized() };
+    fs.writeFileSync(getWindowStatePath(), `${JSON.stringify(state, null, 2)}\n`, "utf8");
+  } catch (error) {
+    logDebug("window-state-save-error", { error: String(error) });
+  }
+}
+
 function createMainWindow() {
+  const windowState = loadWindowState();
   const windowOptions = {
     title: APP_WINDOW_TITLE,
-    width: 1280,
-    height: 900,
-    minWidth: 1024,
-    minHeight: 700,
+    ...windowState.bounds,
+    minWidth: MIN_WINDOW_WIDTH,
+    minHeight: MIN_WINDOW_HEIGHT,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: getWindowBackgroundColor(),
@@ -314,7 +362,14 @@ function createMainWindow() {
   hardenNavigation(mainWindow);
 
   mainWindow.once("ready-to-show", () => {
+    if (windowState.isMaximized) {
+      mainWindow.maximize();
+    }
     mainWindow.show();
+  });
+
+  mainWindow.on("close", () => {
+    saveWindowState(mainWindow);
   });
 
   mainWindow.on("closed", () => {
@@ -494,7 +549,7 @@ function buildAppMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-app.whenReady().then(async () => {
+app.whenReady().then(() => {
   if (process.platform === "darwin" && fs.existsSync(APP_ICON_PATH)) {
     const dockIcon = nativeImage.createFromPath(APP_ICON_PATH);
     if (!dockIcon.isEmpty()) {
@@ -505,11 +560,6 @@ app.whenReady().then(async () => {
   buildAppMenu();
 
   configureHidAndPermissions();
-
-  const shouldContinue = await maybeShowConnectionHint();
-  if (!shouldContinue) {
-    return;
-  }
 
   createMainWindow();
 

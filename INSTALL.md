@@ -27,7 +27,7 @@ npm install
 npm start
 ```
 
-At launch, the app shows a small reminder dialog to connect the keyboard by cable.
+The app restores its previous window size, position, and maximized state when reopened. If the saved position is no longer visible after a display configuration change, the operating system chooses a usable position.
 
 ## Debug Logging
 

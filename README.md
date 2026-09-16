@@ -26,7 +26,7 @@ Minimal Electron desktop utility that opens the Keychron Launcher website in a d
 - Warning dialog when no HID devices are found
 - `navigator.hid` runtime validation in the loaded page context
 - Domain allowlisting and navigation hardening
-- Optional pre-launch hint: connect keyboard by cable before continuing
+- Window size, position, and maximized state restored between launches
 - Auto-update via GitHub Releases in packaged builds (checks for new versions on launch)
 
 ## Installation and Usage
