@@ -14,6 +14,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Changed
 
 - Removed the connection reminder shown at every app launch. The contextual warning when no HID devices are detected remains available.
+- Updated Electron to 43.7.1 with the latest fixes from the existing major release line.
+- Updated `electron-builder` to 26.16.1 to fix macOS signing with temporary keychains on current GitHub Actions runners.
 
 ## [1.0.0] - 2026-07-31
 
