@@ -6,8 +6,8 @@ const { app, BrowserWindow, dialog, Menu, nativeImage, nativeTheme, screen, sess
 const { autoUpdater } = require("electron-updater");
 
 const KEYCHRON_LAUNCHER_URL = "https://launcher.keychron.com";
-const APP_NAME = "Keychron Launcher Wrapper";
-const APP_WINDOW_TITLE = "Keychron Launcher Wrapper";
+const APP_NAME = "Keychron Launcher";
+const APP_WINDOW_TITLE = "Keychron Launcher";
 const DEBUG_LOGS = process.env.KEYCHRON_DEBUG === "1";
 const FORCE_DEVTOOLS = process.env.KEYCHRON_DEVTOOLS === "1";
 const APP_ICON_PATH = path.join(__dirname, "..", "assets", "keychron-launcher-wrapper.png");

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [1.2.0] - 2026-09-16
+
+### Changed
+
+- Changed the visible application name from Keychron Launcher Wrapper to Keychron Launcher.
+- Updated the application icon and website favicon.
+
 ## [1.1.0] - 2026-09-16
 
 ### Added
